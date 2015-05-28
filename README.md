@@ -30,9 +30,8 @@ https://console.developers.google.com/
             </StubFolders>
             <PrivilegedUserName>DOMAIN\user</PrivilegedUserName>
             <AppName xmlns="http://gdata.youtube.com/schemas/2007">Your YouTube App Name</AppName>
-            <DeveloperKey xmlns="http://gdata.youtube.com/schemas/2007">Your YouTube Developer Key</DeveloperKey>
+            <ApiKey xmlns="http://gdata.youtube.com/schemas/2007">Your YouTube Developer Key</ApiKey>
             <Username xmlns="http://gdata.youtube.com/schemas/2007">Your YouTube/Google Username</Username>
-            <Password xmlns="http://gdata.youtube.com/schemas/2007">Your YouTube/Google Password</Password>
             <Users xmlns="http://gdata.youtube.com/schemas/2007">
                 <User></User>
                 <User></User>
