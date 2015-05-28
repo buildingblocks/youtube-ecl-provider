@@ -11,7 +11,7 @@ namespace Blocks.Tridion.ECL.YouTube
     {
         public bool CanGetUploadMultimediaItemsUrl(int publicationId)
         {
-            return true;
+            return false;
         }
 
         public bool CanSearch(int publicationId)
@@ -23,17 +23,37 @@ namespace Blocks.Tridion.ECL.YouTube
         {
             return null;
         }
-
+        public bool canPaginate = true;
         public IFolderContent GetFolderContent(IEclUri parentFolderUri, int pageIndex, EclItemTypes itemTypes)
         {
+            int totalVideos = 0;
             var items = new List<IContentLibraryListItem>();
-            if (parentFolderUri.ItemType == EclItemTypes.MountPoint && itemTypes.HasFlag(EclItemTypes.File))
+
+            if (parentFolderUri.ItemType == EclItemTypes.MountPoint && itemTypes.HasFlag(EclItemTypes.Folder))
             {
-                items.AddRange(YouTubeProvider.Client.GetUploadsForUser().Select(v => new YouTubeListItem(parentFolderUri.PublicationId, v)));
+                items.AddRange(YouTubeProvider.Client.Users.Select(user => new YouTubeListItem(parentFolderUri.PublicationId, user)));
             }
 
-            return YouTubeProvider.HostServices.CreateFolderContent(parentFolderUri, items,
-                CanGetUploadMultimediaItemsUrl(parentFolderUri.PublicationId), CanSearch(parentFolderUri.PublicationId));
+            if (parentFolderUri.ItemType == EclItemTypes.Folder && parentFolderUri.SubType == "usr" && itemTypes.HasFlag(EclItemTypes.File))
+            {
+                canPaginate = true;
+                items.AddRange(YouTubeProvider.Client.GetUploadsForUser(parentFolderUri.ItemId, pageIndex, out totalVideos).Select(v => new YouTubeListItem(parentFolderUri.PublicationId, v)));
+            }
+
+            if (pageIndex == 0 && items.Count < 50)
+            {
+                canPaginate = false;
+            }
+
+            if (canPaginate)
+            {
+                bool isLast = items.Count < 50 || ((pageIndex + 1) * 50 >= totalVideos);
+                return YouTubeProvider.HostServices.CreateFolderContent(parentFolderUri, pageIndex, isLast, items, CanGetUploadMultimediaItemsUrl(parentFolderUri.PublicationId), CanSearch(parentFolderUri.PublicationId));
+            }
+            else
+            {
+                return YouTubeProvider.HostServices.CreateFolderContent(parentFolderUri, items, CanGetUploadMultimediaItemsUrl(parentFolderUri.PublicationId), CanSearch(parentFolderUri.PublicationId));
+            }
         }
 
         public IContentLibraryItem GetItem(IEclUri eclUri)
@@ -70,7 +90,8 @@ namespace Blocks.Tridion.ECL.YouTube
 
                 using (var webClient = new WebClient())
                 {
-                    var data = webClient.DownloadData(video.Thumbnails.FirstOrDefault().Url);
+                    webClient.Proxy = YouTubeProvider.Client._proxy;
+                    var data = webClient.DownloadData(video.Thumbnail);
                     using (var ms = new MemoryStream(data, false))
                     {
                         return YouTubeProvider.HostServices.CreateThumbnailImage(maxWidth, maxHeight, ms, 600, 600, null);
@@ -88,10 +109,10 @@ namespace Blocks.Tridion.ECL.YouTube
 
         public string GetViewItemUrl(IEclUri eclUri)
         {
-            if (eclUri.ItemType == EclItemTypes.File && eclUri.SubType == "vid")
-            {
-                return YouTubeProvider.Client.GetVideo(eclUri.ItemId).WatchPage.ToString();
-            }
+            //if (eclUri.ItemType == EclItemTypes.File && eclUri.SubType == "vid")
+            //{
+            //    return YouTubeProvider.Client.GetVideo(eclUri.ItemId).WatchPage.ToString();
+            //}
 
             throw new NotSupportedException();
         }
@@ -101,9 +122,9 @@ namespace Blocks.Tridion.ECL.YouTube
             throw new NotSupportedException();
         }
 
-        public void StubComponentCreated(IEclUri eclUri, string tcmUri) {}
+        public void StubComponentCreated(IEclUri eclUri, string tcmUri) { }
 
-        public void StubComponentDeleted(IEclUri eclUri, string tcmUri) {}
+        public void StubComponentDeleted(IEclUri eclUri, string tcmUri) { }
 
         public string IconIdentifier
         {
@@ -115,6 +136,6 @@ namespace Blocks.Tridion.ECL.YouTube
             throw new NotSupportedException();
         }
 
-        public void Dispose() {}
+        public void Dispose() { }
     }
 }

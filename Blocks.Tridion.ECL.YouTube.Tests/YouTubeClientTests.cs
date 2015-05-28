@@ -17,9 +17,8 @@ namespace Blocks.Tridion.ECL.YouTube.Tests
             var appSettings = ConfigurationManager.AppSettings;
 
             _client = new YouTubeClient(appSettings["AppName"],
-                                        appSettings["DeveloperKey"],
-                                        appSettings["Username"], 
-                                        appSettings["Password"]);
+                                        appSettings["ApiKey"],
+                                        appSettings["Username"]);
         }
 
         [Test]
@@ -28,15 +27,6 @@ namespace Blocks.Tridion.ECL.YouTube.Tests
             _client.UserToDisplay = "BadLipReading";
 
             var videos = _client.GetUploadsForUser();
-
-            Assert.That(videos, Is.Not.Null);
-            Assert.That(videos, Is.Not.Empty);
-        }
-
-        [Test]
-        public void Can_get_popular_videos()
-        {
-            var videos = _client.GetMostPopular();
 
             Assert.That(videos, Is.Not.Null);
             Assert.That(videos, Is.Not.Empty);

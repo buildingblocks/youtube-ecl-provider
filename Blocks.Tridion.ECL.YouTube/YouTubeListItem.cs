@@ -1,5 +1,5 @@
-﻿using System;
-using Google.YouTube;
+﻿using Blocks.Tridion.ECL.YouTube.API;
+using System;
 using Tridion.ExternalContentLibrary.V2;
 
 namespace Blocks.Tridion.ECL.YouTube
@@ -7,17 +7,31 @@ namespace Blocks.Tridion.ECL.YouTube
     public class YouTubeListItem : IContentLibraryListItem
     {
         protected readonly Video Video;
+        private String User;
         private readonly IEclUri _id;
+        bool IsVideo = false;
+
+        private string _displayTypeId;
 
         public YouTubeListItem(int publicationId, Video video)
         {
             Video = video;
-            _id = YouTubeProvider.HostServices.CreateEclUri(publicationId, YouTubeProvider.MountPointId, Video.VideoId, DisplayTypeId, EclItemTypes.File);
+            _id = YouTubeProvider.HostServices.CreateEclUri(publicationId, YouTubeProvider.MountPointId, Video.VideoId, "vid", EclItemTypes.File);
+            IsVideo = true;
+            _displayTypeId = "vid";
+        }
+
+        public YouTubeListItem(int publicationId, String user)
+        {
+            User = user;
+            _id = YouTubeProvider.HostServices.CreateEclUri(publicationId, YouTubeProvider.MountPointId, user, "usr", EclItemTypes.Folder);
+            _displayTypeId = "usr";
+            IsVideo = false;
         }
 
         public bool CanGetUploadMultimediaItemsUrl
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool CanSearch
@@ -27,7 +41,7 @@ namespace Blocks.Tridion.ECL.YouTube
 
         public string DisplayTypeId
         {
-            get { return "vid"; }
+            get { return _displayTypeId; }
         }
 
         public string IconIdentifier
@@ -42,22 +56,48 @@ namespace Blocks.Tridion.ECL.YouTube
 
         public bool IsThumbnailAvailable
         {
-            get { return Video.Thumbnails.Count > 0; }
+
+            get
+            {
+                if (IsVideo)
+                    return Video.Thumbnail != null;
+                else
+                    return false;
+            }
         }
 
         public DateTime? Modified
         {
-            get { return Video.AtomEntry.Published; }
+            get
+            {
+                if (IsVideo)
+                    return Video.Published;
+                return null;
+
+            }
         }
 
         public string ThumbnailETag
         {
-            get { return Video.ETag; }
+            get
+            {
+                if (IsVideo)
+                    return Video.ThumbnailETag;
+                else
+                    return "";
+
+            }
         }
 
         public string Title
         {
-            get { return Video.Title; }
+            get
+            {
+                if (IsVideo)
+                    return Video.Title;
+                else
+                    return User;
+            }
             set { throw new NotSupportedException(); }
         }
 
