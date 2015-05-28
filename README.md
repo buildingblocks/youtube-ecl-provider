@@ -14,7 +14,7 @@ https://developers.google.com/console/help/new/#generatingdevkeys
 https://console.developers.google.com/
 
 # Sample ExternalContentLibrary.xml #
-
+```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <Configuration xmlns="http://www.sdltridion.com/ExternalContentLibrary/Configuration">
     <!-- Available logging levels: Debug, Info, Warning, Error -->
