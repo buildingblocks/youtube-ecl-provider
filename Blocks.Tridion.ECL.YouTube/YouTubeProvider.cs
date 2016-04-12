@@ -72,8 +72,7 @@ namespace Blocks.Tridion.ECL.YouTube
                                        config.Element(Namespace + "Username").Value,
                                        proxy)
             {
-                Users = youtubeUsers,
-                UserToDisplay = config.Element(Namespace + "UserToDisplay").Value
+                Users = youtubeUsers                
             };
         }
 
