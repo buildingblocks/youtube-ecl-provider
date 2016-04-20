@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Google.GData.Client;
+using System.Web;
 using Tridion.ExternalContentLibrary.V2;
 
 namespace Blocks.Tridion.ECL.YouTube

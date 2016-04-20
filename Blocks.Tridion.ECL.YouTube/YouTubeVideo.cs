@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Google.YouTube;
+using System.Net;
+using Blocks.Tridion.ECL.YouTube.API;
+using Google.Apis.Services;
+using Google.Apis.YouTube.v3;
 using Tridion.ExternalContentLibrary.V2;
 
 namespace Blocks.Tridion.ECL.YouTube
 {
+    /// <summary>
+    /// Client for accessing the YouTube API.
+    /// </summary>
     public class YouTubeVideo : YouTubeListItem, IContentLibraryMultimediaItem
     {
         public YouTubeVideo(int publicationId, Video video)
-            : base(publicationId, video) {}
+            : base(publicationId, video) { }
 
         public IContentLibraryItem Save(bool readback)
         {
@@ -33,7 +39,7 @@ namespace Blocks.Tridion.ECL.YouTube
 
         public DateTime? Created
         {
-            get { return Video.AtomEntry.Published; }
+            get { return Video.Published; }
         }
 
         public string CreatedBy
@@ -53,7 +59,7 @@ namespace Blocks.Tridion.ECL.YouTube
 
         public ISchemaDefinition MetadataXmlSchema
         {
-            get 
+            get
             {
                 var schema = YouTubeProvider.HostServices.CreateSchemaDefinition("Metadata", "http://gdata.youtube.com/schemas/2007");
                 schema.Fields.Add(YouTubeProvider.HostServices.CreateMultiLineTextFieldDefinition("Description", "Description", 0, 1, 7));
@@ -88,7 +94,7 @@ namespace Blocks.Tridion.ECL.YouTube
 
         public string GetTemplateFragment(IList<ITemplateAttribute> attributes)
         {
-            var supportedAttributeNames = new[] {"width", "height"};
+            var supportedAttributeNames = new[] { "width", "height" };
             var supportedAttributes = attributes.SupportedAttributes(supportedAttributeNames);
 
             return "<iframe src=\"{0}\" {1}></iframe>".FormatWith(GetDirectLinkToPublished(attributes), supportedAttributes);
@@ -106,10 +112,9 @@ namespace Blocks.Tridion.ECL.YouTube
 
         public string MimeType
         {
-            get 
-            { 
-                var content = Video.Contents.FirstOrDefault();
-                return content != null ? content.Type : "application/x-shockwave-flash";
+            get
+            {
+                return Video.Type ?? "application/x-shockwave-flash";
             }
         }
 

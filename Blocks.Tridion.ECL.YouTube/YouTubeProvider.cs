@@ -2,6 +2,8 @@
 using System.AddIn;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Xml.Linq;
 using Blocks.Tridion.ECL.YouTube.API;
@@ -33,17 +35,44 @@ namespace Blocks.Tridion.ECL.YouTube
         {
             MountPointId = mountPointId;
             HostServices = hostServices;
-
             var config = XElement.Parse(configurationXmlElement);
 
-            
+            var usersList = config.Element(Namespace + "Users");
+
+            var youtubeUsers = usersList.Elements(Namespace + "User").Select(xUsers => xUsers.Value).ToList();
+
+            var proxyURI = String.Empty;
+            var proxyUser = String.Empty;
+            var proxyPassword = String.Empty;
+
+            WebProxy proxy = new WebProxy();
+
+            if (config.Element(Namespace + "ProxyURI") != null)
+            {
+                proxyURI = config.Element(Namespace + "ProxyURI").Value;
+                proxy = new WebProxy(proxyURI, true);
+            }
+            if (config.Element(Namespace + "ProxyUser") != null)
+            {
+                proxyUser = config.Element(Namespace + "ProxyUser").Value;
+            }
+            if (config.Element(Namespace + "ProxyPassword") != null)
+            {
+                proxyPassword = config.Element(Namespace + "ProxyPassword").Value;
+            }
+
+            if (!String.IsNullOrEmpty(proxyUser) && !String.IsNullOrEmpty(proxyPassword))
+            {
+                proxy.Credentials = new NetworkCredential(proxyUser, proxyPassword);
+            }
+
 
             Client = new YouTubeClient(config.Element(Namespace + "AppName").Value,
-                                       config.Element(Namespace + "DeveloperKey").Value,
+                                       config.Element(Namespace + "ApiKey").Value,
                                        config.Element(Namespace + "Username").Value,
-                                       config.Element(Namespace + "Password").Value)
+                                       proxy)
             {
-                UserToDisplay = config.Element(Namespace + "UserToDisplay").Value
+                Users = youtubeUsers                
             };
         }
 
@@ -53,12 +82,13 @@ namespace Blocks.Tridion.ECL.YouTube
             {
                 return new List<IDisplayType>
                 {
+                    HostServices.CreateDisplayType("usr", "YouTube User", EclItemTypes.Folder),
                     HostServices.CreateDisplayType("vid", "YouTube Video", EclItemTypes.File)
                 };
             }
         }
 
-        public void Dispose() {}
+        public void Dispose() { }
 
         internal static string AddInFolder
         {
